@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Email Verified</title>
+  <title>Email Verification</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * {
@@ -20,13 +20,18 @@
     }
     .content {
       text-align: center;
-      max-width: 400px;
+      max-width: 420px;
       padding: 30px;
     }
-    .icon-success {
+    .icon-success, .icon-error {
       font-size: 56px;
-      color: #4CAF50;
       margin-bottom: 20px;
+    }
+    .icon-success {
+      color: #4CAF50;
+    }
+    .icon-error {
+      color: #f44336;
     }
     h1 {
       font-size: 26px;
@@ -38,28 +43,22 @@
       color: #666;
       margin: 0 0 20px;
     }
-    .btn {
-      display: inline-block;
-      background: #4CAF50;
-      color: white;
-      padding: 12px 28px;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
-    .btn:hover {
-      background: #43a047;
+    #status {
+      margin-top: 20px;
+      font-size: 15px;
+      color: #f44336;
     }
   </style>
 </head>
 <body>
   <div class="content">
-    <div class="icon-success">✅</div>
-    <h1>Email Verified!</h1>
-    <p>Your email has been successfully verified. You're all set to go!</p>
+    <div id="icon" class="icon-success">✅</div>
+    <h1 id="title">Email Verification</h1>
+    <p id="message">Please wait while we verify your email...</p>
+    <div id="status"></div>
   </div>
- <script>
+
+  <script>
     const supabase = supabase.createClient(
       'https://mfjveneklznyfrtfmvoc.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1manZlbmVrbHpueWZydGZtdm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTU2MjMsImV4cCI6MjA2MTMzMTYyM30.LoAh7yZb5R8na5UuIVQsbBnyrn_uUBXVFUUIZeG9g-E'
@@ -67,22 +66,47 @@
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const status = document.getElementById('status');
+    const icon = document.getElementById('icon');
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
 
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
-        const status = document.getElementById('status');
         if (error) {
           console.error(error);
-          status.textContent = 'Failed to verify email: ' + error.message;
+          icon.textContent = '❌';
+          icon.className = 'icon-error';
+          title.textContent = 'Verification Failed';
+          if (error.message.toLowerCase().includes('invalid') || error.message.toLowerCase().includes('expired')) {
+            message.textContent = 'The verification link is invalid or has expired.';
+          } else {
+            message.textContent = 'Something went wrong while verifying your email.';
+          }
+          status.textContent = 'Please try again later or contact support if the issue persists.';
         } else {
-          status.textContent = '✅ Email verified successfully!';
+          icon.textContent = '✅';
+          icon.className = 'icon-success';
+          title.textContent = 'Email Verified!';
+          message.textContent = 'Your email has been verified successfully. You can now access all features of your account.';
+          status.textContent = '';
           console.log('Session:', data.session);
         }
+      }).catch(err => {
+        console.error('Unexpected error:', err);
+        icon.textContent = '❌';
+        icon.className = 'icon-error';
+        title.textContent = 'Unexpected Error';
+        message.textContent = 'Something went wrong while verifying your email.';
+        status.textContent = 'Please try again later or contact support.';
       });
     } else {
-      document.getElementById('status').textContent = 'No verification code found.';
+      icon.textContent = '❌';
+      icon.className = 'icon-error';
+      title.textContent = 'Verification Code Missing';
+      message.textContent = 'We couldn’t find a verification code in the link.';
+      status.textContent = 'Please make sure you clicked the correct link from your email.';
     }
   </script>
-
 </body>
 </html>
