@@ -6,115 +6,81 @@
   <title>Email Verification</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
     html, body {
       height: 100%;
       margin: 0;
-      background: #ffffff;
       font-family: 'Inter', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: #ffffff;
     }
     .content {
       text-align: center;
-      max-width: 420px;
       padding: 30px;
     }
-    .icon-success, .icon-error {
+    .icon {
       font-size: 56px;
       margin-bottom: 20px;
-    }
-    .icon-success {
-      color: #4CAF50;
-    }
-    .icon-error {
-      color: #f44336;
     }
     h1 {
       font-size: 26px;
       color: #333;
-      margin: 0 0 10px;
+      margin-bottom: 10px;
     }
     p {
       font-size: 16px;
       color: #666;
-      margin: 0 0 20px;
-    }
-    #status {
-      margin-top: 20px;
-      font-size: 15px;
-      color: #f44336;
     }
   </style>
 </head>
 <body>
   <div class="content">
-    <div id="icon" class="icon-success">✅</div>
-    <h1 id="title">Email Verification</h1>
-    <p id="message">Please wait while we verify your email...</p>
-    <div id="status"></div>
+    <div id="icon" class="icon">🔄</div>
+    <h1 id="title">Verifying...</h1>
+    <p id="message"></p>
   </div>
 
- <script>
-  const supabase = supabase.createClient(
-    'https://mfjveneklznyfrtfmvoc.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1manZlbmVrbHpueWZydGZtdm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTU2MjMsImV4cCI6MjA2MTMzMTYyM30.LoAh7yZb5R8na5UuIVQsbBnyrn_uUBXVFUUIZeG9g-E'
-  );
+  <script>
+    const supabase = supabase.createClient(
+      'https://mfjveneklznyfrtfmvoc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1manZlbmVrbHpueWZydGZtdm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTU2MjMsImV4cCI6MjA2MTMzMTYyM30.LoAh7yZb5R8na5UuIVQsbBnyrn_uUBXVFUUIZeG9g-E'
+    );
 
-  // Combine query and hash parameters
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    // Merge query and hash parameters
+    const query = new URLSearchParams(location.search + '&' + location.hash.replace(/^#/, ''));
+    const code = query.get('code');
+    const errorCode = query.get('error_code') || query.get('error');
 
-  const code = searchParams.get('code') || hashParams.get('code');
-  const errorCode = searchParams.get('error_code') || hashParams.get('error_code');
-  const errorDescription = searchParams.get('error_description') || hashParams.get('error_description');
+    const icon = document.getElementById('icon');
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
 
-  const icon = document.getElementById('icon');
-  const title = document.getElementById('title');
-  const message = document.getElementById('message');
-  const status = document.getElementById('status');
-
-  if (errorCode || errorDescription) {
-    icon.textContent = '❌';
-    icon.className = 'icon-error';
-    title.textContent = 'Verification Failed';
-    message.textContent = decodeURIComponent(errorDescription || 'The verification link is invalid or has expired.');
-    status.textContent = 'Please try again or request a new verification link.';
-  } else if (code) {
-    supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
-      if (error) {
-        console.error(error);
-        icon.textContent = '❌';
-        icon.className = 'icon-error';
-        title.textContent = 'Verification Failed';
-        message.textContent = 'Something went wrong while verifying your email.';
-        status.textContent = 'Please try again or request a new verification link.';
-      } else {
-        icon.textContent = '✅';
-        icon.className = 'icon-success';
-        title.textContent = 'Email Verified!';
-        message.textContent = 'Your email has been verified successfully. You can now access all features of your account.';
-        status.textContent = '';
-      }
-    }).catch(err => {
-      console.error('Unexpected error:', err);
+    if (errorCode) {
       icon.textContent = '❌';
-      icon.className = 'icon-error';
-      title.textContent = 'Unexpected Error';
-      message.textContent = 'Something went wrong while verifying your email.';
-      status.textContent = 'Please try again later or contact support.';
-    });
-  } else {
-    icon.textContent = '❌';
-    icon.className = 'icon-error';
-    title.textContent = 'Verification Code Missing';
-    message.textContent = 'We couldn’t find a verification code in the link.';
-    status.textContent = 'Please make sure you clicked the correct link from your email.';
-  }
-</script>
-
+      title.textContent = 'Verification Failed';
+      message.textContent = 'The link is invalid or has expired.';
+    } else if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          icon.textContent = '❌';
+          title.textContent = 'Verification Failed';
+          message.textContent = 'Something went wrong. Please try again.';
+        } else {
+          icon.textContent = '✅';
+          title.textContent = 'Email Verified';
+          message.textContent = 'Your email has been verified successfully. You can now access all features of your account.';
+        }
+      }).catch(() => {
+        icon.textContent = '❌';
+        title.textContent = 'Verification Failed';
+        message.textContent = 'Unexpected error. Please try again.';
+      });
+    } else {
+      icon.textContent = '❌';
+      title.textContent = 'Verification Failed';
+      message.textContent = 'Invalid verification link.';
+    }
+  </script>
 </body>
 </html>
