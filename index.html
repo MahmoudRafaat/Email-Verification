@@ -59,36 +59,30 @@
     <h1>Email Verified!</h1>
     <p>Your email has been successfully verified. You're all set to go!</p>
   </div>
-  <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+ <script>
+    const supabase = supabase.createClient(
+      'https://mfjveneklznyfrtfmvoc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1manZlbmVrbHpueWZydGZtdm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTU2MjMsImV4cCI6MjA2MTMzMTYyM30.LoAh7yZb5R8na5UuIVQsbBnyrn_uUBXVFUUIZeG9g-E'
+    );
 
-  const supabase = createClient('https://mfjveneklznyfrtfmvoc.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1manZlbmVrbHpueWZydGZtdm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTU2MjMsImV4cCI6MjA2MTMzMTYyM30.LoAh7yZb5R8na5UuIVQsbBnyrn_uUBXVFUUIZeG9g-E')
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
 
-  const hash = window.location.hash
-  const params = new URLSearchParams(hash.substring(1))
-
-  const access_token = params.get('access_token')
-  const refresh_token = params.get('refresh_token')
-
-  if (access_token && refresh_token) {
-    supabase.auth.setSession({
-      access_token,
-      refresh_token
-    }).then(({ data, error }) => {
-      if (error) {
-        document.querySelector('h1').textContent = 'Error verifying email'
-        document.querySelector('p').textContent = error.message
-        document.querySelector('.icon-success').textContent = '❌'
-      } else {
-        console.log('User session set:', data)
-      }
-    })
-  } else {
-    document.querySelector('h1').textContent = 'Error'
-    document.querySelector('p').textContent = 'Please check your email confirmation link again.'
-    document.querySelector('.icon-success').textContent = '❌'
-  }
-</script>
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        const status = document.getElementById('status');
+        if (error) {
+          console.error(error);
+          status.textContent = 'Failed to verify email: ' + error.message;
+        } else {
+          status.textContent = '✅ Email verified successfully!';
+          console.log('Session:', data.session);
+        }
+      });
+    } else {
+      document.getElementById('status').textContent = 'No verification code found.';
+    }
+  </script>
 
 </body>
 </html>
