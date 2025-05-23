@@ -66,31 +66,37 @@
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    const status = document.getElementById('status');
+    const errorCode = params.get('error_code');
+    const errorDescription = params.get('error_description');
+
     const icon = document.getElementById('icon');
     const title = document.getElementById('title');
     const message = document.getElementById('message');
+    const status = document.getElementById('status');
 
-    if (code) {
+    // Handle Supabase error from query params
+    if (errorCode || errorDescription) {
+      icon.textContent = '❌';
+      icon.className = 'icon-error';
+      title.textContent = 'Verification Failed';
+      message.textContent = decodeURIComponent(errorDescription || 'The verification link is invalid or has expired.');
+      status.textContent = 'Please try again or request a new verification link.';
+    }
+    else if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error) {
           console.error(error);
           icon.textContent = '❌';
           icon.className = 'icon-error';
           title.textContent = 'Verification Failed';
-          if (error.message.toLowerCase().includes('invalid') || error.message.toLowerCase().includes('expired')) {
-            message.textContent = 'The verification link is invalid or has expired.';
-          } else {
-            message.textContent = 'Something went wrong while verifying your email.';
-          }
-          status.textContent = 'Please try again later or contact support if the issue persists.';
+          message.textContent = 'Something went wrong while verifying your email.';
+          status.textContent = 'Please try again or request a new verification link.';
         } else {
           icon.textContent = '✅';
           icon.className = 'icon-success';
           title.textContent = 'Email Verified!';
           message.textContent = 'Your email has been verified successfully. You can now access all features of your account.';
           status.textContent = '';
-          console.log('Session:', data.session);
         }
       }).catch(err => {
         console.error('Unexpected error:', err);
