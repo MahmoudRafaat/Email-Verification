@@ -128,22 +128,26 @@
             }
         }
 
-        .next-button {
-            background: #3498db;
-            color: white;
-            padding: 0.9rem 2rem;
-            border: none;
-            border-radius: 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.3s ease, background 0.3s ease;
-            animation: fadeInUp 1.4s ease-out;
-        }
+       .next-button {
+    display: inline-block;
+    text-decoration: none; /* not needed now but doesn't hurt */
+    background: #3498db;
+    color: white;
+    padding: 0.9rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: default; /* makes it clear it's not clickable */
+    transition: transform 0.3s ease, background 0.3s ease;
+    animation: fadeInUp 1.4s ease-out;
+    user-select: none; /* optional: prevents text selection */
+}
 
-        .next-button:hover {
-            background: #2980b9;
-            transform: scale(1.05);
-        }
+.next-button:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
 
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -207,7 +211,7 @@
         </div>
         <h1>Email Verified</h1>
         <p>Your email has been successfully verified! You can now proceed to use our services.</p>
-        <button class="next-button" onclick="window.location.href='dashboard.html'">Go to Dashboard</button>
+<div class="next-button">Go to Dashboard</div>
     </div>
 </body>
 </html>
